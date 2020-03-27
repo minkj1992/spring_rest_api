@@ -202,3 +202,7 @@ MockHttpServletResponse:
     - `HAL_JSON_VALUE`
     - `HAL_JSON`
     - `HAL_FORMS_JSON_VALUE` 
+    - `MediaType.APPLICATION_JSON`
+        - "public constant media type for application/json"
+    - `MediaType.APPLICATION_JSON_VALUE`
+        -  "String equivalent of MediaType.APPLICATION_JSON"
