@@ -3,8 +3,10 @@ package com.minkj1992.spring_rest_api.events;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -26,7 +28,10 @@ public class EventControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
-    
+
+    @MockBean
+    EventRepository eventRepository;
+
     @Test
     public void createEvent() throws Exception{
         //given
@@ -42,6 +47,8 @@ public class EventControllerTest {
                 .limitOfEnrollment(100)
                 .location("Seoul Spring Shop")
                 .build();
+        event.setId(10);
+        Mockito.when(eventRepository.save(event)).thenReturn(event);    //controller에서 save해주더라도 mockBean은 null을 return하니까 catch 해준다.
         //when
         //then
         mockMvc.perform(post("/api/events/")    // 앞 뒤로 /막아주어야 한다.
