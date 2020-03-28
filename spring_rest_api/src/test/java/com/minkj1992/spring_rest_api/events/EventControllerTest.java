@@ -1,6 +1,7 @@
 package com.minkj1992.spring_rest_api.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.minkj1992.spring_rest_api.common.TestDescription;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ public class EventControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @TestDescription("정상적으로 이벤트를 생성하는 테스트")
     public void createEvent() throws Exception {
         //given
         EventDto eventDto = EventDto.builder()
@@ -61,6 +63,7 @@ public class EventControllerTest {
     }
 
     @Test
+    @TestDescription("입력받을 수 없는 값 요청 시 에러가 발생하는 테스트")
     public void createEvent_Bad_Request() throws Exception {
         //given
         Event event = Event.builder()
@@ -89,6 +92,7 @@ public class EventControllerTest {
     }
 
     @Test
+    @TestDescription("입력값이 비어있는 경우 에러가 발생하는 테스트")
     public void createEvent_Bad_Request_Empty_Input() throws Exception {
         //given
         EventDto eventDto = EventDto.builder().build();
@@ -100,6 +104,7 @@ public class EventControllerTest {
     }
 
     @Test
+    @TestDescription("입력값이 논리적으로 잘못된 경우 에러가 발생하는 테스트")
     public void createEvent_Bad_Request_Wrong_Input() throws Exception {
         //given
         EventDto eventDto = EventDto.builder()
@@ -120,4 +125,5 @@ public class EventControllerTest {
                 .content(objectMapper.writeValueAsString(eventDto)))
                 .andExpect(status().isBadRequest());
     }
+
 }

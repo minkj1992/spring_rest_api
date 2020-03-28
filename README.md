@@ -265,4 +265,15 @@ public void createEvent_Bad_Request() throws Exception {
 - Controller 검증 코드 추가
 - 테스트 추가
 
+### 6. TEST CODE Description 추가
+> 테스트 코드가 길어지니 테스트 description을 추가한다.
+- junit5는 이렇게 하지 않아도 되지만, 4에서는 다르게 한다.
+```java
+@Target(ElementType.METHOD) // method에 대해 검증
+@Retention(RetentionPolicy.SOURCE)    //보유,유지: life cycle how long
+public @interface TestDescription {
+    String value();
+}
+```
+
 
