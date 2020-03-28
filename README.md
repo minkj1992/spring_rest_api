@@ -221,3 +221,13 @@ MockHttpServletResponse:
 - `Matchers.not()`을 통한 setId, setStatus, .... 이 테스트에서 통과되지 않는지 검사
     - `Matchers`가 deprecated되었다.
     - @TODO: Matchers를 대체하여 테스트하는 방법 찾기
+
+### 4. 입력값 이외에 에러발생
+> 입력값 중 id, price와 같은 필드들은 입력을 받아 update 되면 에러를 발생시킨다.
+```java
+public void createEvent_Bad_Request() throws Exception {
+        ...
+}
+```
+- `application.properties`
+    - `spring.jackson.deserialization.fail-on-unknown-properties=true`
