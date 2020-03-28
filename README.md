@@ -276,4 +276,41 @@ public @interface TestDescription {
 }
 ```
 
+### 7. Bad Request 응답
+> Bad Request 응답에 body가 있도록 한다.
+- controller에 bad request시 `.build()` 대신 `.body()`사용
 
+- **java Bean은 `BeanSerializer`에 의해서 json으로 변환이 가능하지만, SpringFramework의 Errors는 bean규약을 따르지 않아 따로 serializer를 생성해주어야 한다.**
+- `/common/ErrorSerializer`
+    - Error를 json으로 변환시켜 전달해준다.
+```java
+@JsonComponent  //Spring의 ObjectMapper에 등록
+public class ErrorSerializer extends JsonSerializer<Errors> {
+
+    @Override
+    public void serialize(Errors errors, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        ...
+    }
+}
+```
+- **ObjectMapper는 Spring의 Errors 타입을 Serialize할 때 `ErrorSerializer`를 사용한다.**
+
+- 응답값
+```json
+
+String parseJS eval
+[
+{
+"field":"endEventDateTime",
+"objectName":"eventDto",
+"code":"WrongValue",
+"defaultMessage":"endEventDateTime is Wrong",
+"rejected":"2000-12-14T11:11"
+},
+{
+"objectName":"eventDto",
+"code":"WrongPrices",
+"defaultMessage":"Values of Prices are Wrong"
+}
+]
+```
