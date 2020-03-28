@@ -1,9 +1,13 @@
 package com.minkj1992.spring_rest_api.events;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(JUnitParamsRunner.class)
 public class EventsTest {
 
     @Test
@@ -30,64 +34,50 @@ public class EventsTest {
     }
 
     @Test
-    public void testFree() throws Exception {
-
-        // 1
+    @Parameters
+    //    @Parameters(method = "parametersForTestFree")         parametersFor가 convention이여서 찾아준다.
+    public void testFree(int basePrice, int maxPrice, boolean isFree) throws Exception {
         //given
         Event event = Event.builder()
-                .basePrice(0)
-                .maxPrice(0)
+                .basePrice(basePrice)
+                .maxPrice(maxPrice)
                 .build();
         //when
         event.update();
 
         //then
-        assertThat(event.isFree()).isTrue();
-
-        // 2
-        //given
-        event = Event.builder()
-                .basePrice(100)
-                .maxPrice(0)
-                .build();
-        //when
-        event.update();
-
-        //then
-        assertThat(event.isFree()).isFalse();
-
-        // 3
-        //given
-        event = Event.builder()
-                .basePrice(0)
-                .maxPrice(100)
-                .build();
-        //when
-        event.update();
-
-        //then
-        assertThat(event.isFree()).isFalse();
+        assertThat(event.isFree()).isEqualTo(isFree);
     }
-    
+
+    private Object[] parametersForTestFree() {
+        return new Object[]{
+                new Object[]{0, 0, true},
+                new Object[]{100, 0, false},
+                new Object[]{0, 100, false},
+                new Object[]{100, 200, false}
+        };
+    }
+
     @Test
-    public void testOffline() throws Exception{
+    @Parameters
+    public void testOffline(String location, boolean isOffline) throws Exception {
         //given
         Event event = Event.builder()
-                .location("코로나 free zone")
+                .location(location)
                 .build();
         //when
         event.update();
 
         //then
-        assertThat(event.isOffline()).isTrue();
+        assertThat(event.isOffline()).isEqualTo(isOffline);
+    }
 
-        //given
-        event = Event.builder()
-                .build();
-        //when
-        event.update();
-
-        //then
-        assertThat(event.isOffline()).isFalse();
+    private Object[] parametersForTestOffline() {
+        return new Object[]{
+                new Object[]{"코로나 free zone", true},
+                new Object[]{"", false},
+                new Object[]{"                    ", false},
+                new Object[]{null, false},
+        };
     }
 }

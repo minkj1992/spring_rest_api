@@ -327,3 +327,22 @@ String parseJS eval
         offline = !(location == null || location.isBlank());    //null 검사 먼저 주의
     }
 ```
+### 9. 비즈니스 로직 테스트 리펙토링
+> 테스트 코드의 중복 해결 방법 -> `JUnitParams`
+
+```java
+    @Test
+    public void testFree(int basePrice, int maxPrice, boolean isFree) throws Exception {}
+    private Object[] parametersForTestFree() {}
+```
+위와 같은 parameter 함수가 있다면
+
+```java
+    @Parameters
+    @Parameters(method = "parametersForTestFree")
+    @Test
+    public void testFree(int basePrice, int maxPrice, boolean isFree) throws Exception {}
+```
+- 위의 @Parameters 중 아무거 써도 결과가 같다. 
+- parametersFor가 convention이여서 찾아준다.
+
