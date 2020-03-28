@@ -235,6 +235,8 @@ public void createEvent_Bad_Request() throws Exception {
 
 ### 5. Bad Request 처리
 > 입력값이 이상한 경우에 Bad Request를 보내는 방법
+
+#### 5-1. 입력값 Empty
 ```java
     @Test
     public void createEvent_Bad_Request_Empty_Input() throws Exception {
@@ -258,5 +260,9 @@ public void createEvent_Bad_Request() throws Exception {
         }
 
 ```
+#### 5-1. 입력값 Wrong value
+- `EventValidator`클래스 생성
+- Controller 검증 코드 추가
+- 테스트 추가
 
 
