@@ -217,7 +217,8 @@ MockHttpServletResponse:
 > 입력값 중 id, price와 같은 필드들은 입력을 받아 update 되면 안된다.
 
 - DTO 생성
-- obejctMapper를 통한 builder 패턴 간소화
+- `ModelMapper`를 통한 builder 패턴 간소화
+    - mvn 의존성 가져오기
 - `Matchers.not()`을 통한 setId, setStatus, .... 이 테스트에서 통과되지 않는지 검사
     - `Matchers`가 deprecated되었다.
     - @TODO: Matchers를 대체하여 테스트하는 방법 찾기
@@ -231,3 +232,31 @@ public void createEvent_Bad_Request() throws Exception {
 ```
 - `application.properties`
     - `spring.jackson.deserialization.fail-on-unknown-properties=true`
+
+### 5. Bad Request 처리
+> 입력값이 이상한 경우에 Bad Request를 보내는 방법
+```java
+    @Test
+    public void createEvent_Bad_Request_Empty_Input() throws Exception {
+        //given
+        EventDto eventDto = EventDto.builder().build();
+        //when then
+        mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(eventDto)))
+                .andExpect(status().isBadRequest());
+    }
+```
+
+- Controller `@Valid`추가
+- EventDto `@Min(0)`, `@NotEmpty` .. 추가
+- Controller `Errors errors` 파라미터 추가
+- COntroller DTO Validation 추가
+```java
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+```
+
+
