@@ -314,3 +314,16 @@ String parseJS eval
 }
 ]
 ```
+
+### 8. 비즈니스 로직 추가
+
+- Event Domain Test 추가
+    - `testFree()`
+    - `testOffline()`
+- Domain `update()` 추가
+```java
+    public void update() {
+        free = basePrice == 0 && maxPrice == 0;
+        offline = !(location == null || location.isBlank());    //null 검사 먼저 주의
+    }
+```

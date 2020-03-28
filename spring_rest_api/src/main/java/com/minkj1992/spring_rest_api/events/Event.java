@@ -6,13 +6,16 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Builder
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 @Entity
 public class Event {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Integer id;
 
     private String name;
@@ -31,4 +34,9 @@ public class Event {
     private boolean free;
     @Enumerated(EnumType.STRING)
     private EventStatus eventStatus = EventStatus.DRAFT;
+
+    public void update() {
+        free = basePrice == 0 && maxPrice == 0;
+        offline = !(location == null || location.isBlank());    //null 검사 먼저 주의
+    }
 }

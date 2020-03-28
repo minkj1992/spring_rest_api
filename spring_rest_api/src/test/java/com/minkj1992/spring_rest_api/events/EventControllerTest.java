@@ -57,9 +57,9 @@ public class EventControllerTest {
                 .andExpect(jsonPath("id").exists())
                 .andExpect(header().exists(HttpHeaders.LOCATION))   // 상수들 모음
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
-        //                        .andExpect(jsonPath("id").value(Matchers.isNull(AdditionalMatchers.and(100))))    // 100이 아닌지 검사
-        //                        .andExpect(jsonPath("free").value(Matchers.not(true)))    // free가 아닌지 검사
+                .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
+                .andExpect(jsonPath("free").value(false))
+                .andExpect(jsonPath("offline").value(true));
     }
 
     @Test
