@@ -10,13 +10,13 @@
 - `Spring Security OAuth2` 
 - `TDD`
 
-## 개발 목표
+# 개발 목표
 
-## 개발 과정
+# 개발 과정
 
-### 1. 개발환경 세팅
+## 1. 개발환경 세팅
 - `mvn package`
-### 2. `Event` Domain 구현
+## 2. `Event` Domain 구현
 - `Event` 클래스 생성
 - Test
     - `@Builder`를 활용해서 테스트 케이스 생성
@@ -108,8 +108,8 @@
     }
 
 ```
-### 3. 이벤트 생성 API
-#### 1. EventController Test `createEvent()` 생성
+## 3. 이벤트 생성 API
+### 1. EventController Test `createEvent()` 생성
 - 
     - 
     ```java
@@ -133,7 +133,7 @@
         - Accept: text/*
         - **Accept로 원하는 형식을 보내면, 서버가 그에 맞춰 보내주면서 응답 헤더의 Content를 알맞게 설정한다.**
 
-#### 2. `EventController createEvent()` 생성
+### 2. `EventController createEvent()` 생성
 - 
     - `import static org.springframework.hateoas.server.mvc.ControllerLinkBuilder.linkTo;`
         - Deprecated: use `WebMvcLinkBuilder` instead.
@@ -212,3 +212,12 @@ MockHttpServletResponse:
         - "public constant media type for application/json"
     - `MediaType.APPLICATION_JSON_VALUE`
         -  "String equivalent of MediaType.APPLICATION_JSON"
+
+### 3. 입력값 제한하기
+> 입력값 중 id, price와 같은 필드들은 입력을 받아 update 되면 안된다.
+
+- DTO 생성
+- obejctMapper를 통한 builder 패턴 간소화
+- `Matchers.not()`을 통한 setId, setStatus, .... 이 테스트에서 통과되지 않는지 검사
+    - `Matchers`가 deprecated되었다.
+    - @TODO: Matchers를 대체하여 테스트하는 방법 찾기
