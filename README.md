@@ -23,6 +23,8 @@
     - [3.3.8. 비즈니스 로직 추가](#338-%eb%b9%84%ec%a6%88%eb%8b%88%ec%8a%a4-%eb%a1%9c%ec%a7%81-%ec%b6%94%ea%b0%80)
     - [3.3.9. 비즈니스 로직 테스트 리펙토링](#339-%eb%b9%84%ec%a6%88%eb%8b%88%ec%8a%a4-%eb%a1%9c%ec%a7%81-%ed%85%8c%ec%8a%a4%ed%8a%b8-%eb%a6%ac%ed%8e%99%ed%86%a0%eb%a7%81)
   - [3.4. `HATEOAS`와 `Self-Describtive Message` 적용](#34-hateoas%ec%99%80-self-describtive-message-%ec%a0%81%ec%9a%a9)
+    - [3.4.1. `HATEOAS` 적용](#341-hateoas-%ec%a0%81%ec%9a%a9)
+    - [3.4.2. `REST Docs` 적용](#342-rest-docs-%ec%a0%81%ec%9a%a9)
 
 <!-- /TOC -->
 
@@ -381,6 +383,7 @@ String parseJS eval
 ## 3.4. `HATEOAS`와 `Self-Describtive Message` 적용
 
 
+### 3.4.1. `HATEOAS` 적용
 - `ResourceSupport` from Spring-HATEOAS
   - HATEOAS의 resource를 제공해주는 class(impl)
   - ver 1.0.2 이후 부터는 `import org.springframework.hateoas.EntityModel;`를 사용한다.
@@ -404,4 +407,16 @@ public class EventResource extends EntityModel<Event> {
   - `self`(view)
   - `update`(수정 링크)
   - `events`(목록으로가는 링크)
-- 
+
+### 3.4.2. `REST Docs` 적용
+
+
+1. `@AutoConfigureRestDocs`를 만들어 놓은 `test class`위에 작성한다.
+2. `.andDo(document())`를 활용하여 `snippet`들을 생성해준다.
+3. `RestDocsMockMvcConfigurationCustomizer`를 활용해 보기  어려운 snippet들을 커스터마이징 시켜준다.
+   1. test 패키지에 클래스를 생성해준다.
+   2. `RestDocsMockMvcConfigurationCustomizer`를 return 해주는 함수를 만들어준다.
+4. `@Import(RestDocsConfiguration.class)`를 테스트에 넣어주어 클래스를 설정을 불러온다.
+
+
+

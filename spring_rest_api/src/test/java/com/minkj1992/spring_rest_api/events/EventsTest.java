@@ -4,10 +4,12 @@ import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(JUnitParamsRunner.class)
+@AutoConfigureRestDocs
 public class EventsTest {
 
     @Test
