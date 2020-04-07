@@ -25,6 +25,8 @@
   - [3.4. `HATEOAS`와 `Self-Describtive Message` 적용](#34-hateoas%ec%99%80-self-describtive-message-%ec%a0%81%ec%9a%a9)
     - [3.4.1. `HATEOAS` 적용](#341-hateoas-%ec%a0%81%ec%9a%a9)
     - [3.4.2. `REST Docs` 적용](#342-rest-docs-%ec%a0%81%ec%9a%a9)
+    - [스프링 REST Docs 각종 문서 조각 생성하기](#%e1%84%89%e1%85%b3%e1%84%91%e1%85%b3%e1%84%85%e1%85%b5%e1%86%bc-rest-docs-%e1%84%80%e1%85%a1%e1%86%a8%e1%84%8c%e1%85%a9%e1%86%bc-%e1%84%86%e1%85%ae%e1%86%ab%e1%84%89%e1%85%a5-%e1%84%8c%e1%85%a9%e1%84%80%e1%85%a1%e1%86%a8-%e1%84%89%e1%85%a2%e1%86%bc%e1%84%89%e1%85%a5%e1%86%bc%e1%84%92%e1%85%a1%e1%84%80%e1%85%b5)
+    - [스프링 REST Docs 문서 빌드](#%e1%84%89%e1%85%b3%e1%84%91%e1%85%b3%e1%84%85%e1%85%b5%e1%86%bc-rest-docs-%e1%84%86%e1%85%ae%e1%86%ab%e1%84%89%e1%85%a5-%e1%84%87%e1%85%b5%e1%86%af%e1%84%83%e1%85%b3)
 
 <!-- /TOC -->
 
@@ -419,4 +421,24 @@ public class EventResource extends EntityModel<Event> {
 4. `@Import(RestDocsConfiguration.class)`를 테스트에 넣어주어 클래스를 설정을 불러온다.
 
 
+### 스프링 REST Docs 각종 문서 조각 생성하기
 
+1. 요청 헤더 문서화
+2. 요청 필드 문서화
+3. 응답 헤더 문서화
+4. 응답 필드 문서화
+5. 링크 문서화
+   1. self
+   2. query-events
+   3. update-event
+   
+
+### 스프링 REST Docs 문서 빌드
+
+1. main/asciidoc/index.html 생성
+2. maven plugin 추가
+3. mvn package
+4. profile 
+   1. test에 profile 추가
+   2. controller에 link 추가
+      - `eventResource.add(new Link("/docs/index.html#resources-events-create").withRel("profile"));` 
