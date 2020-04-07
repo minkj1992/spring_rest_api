@@ -27,6 +27,7 @@
     - [3.4.2. `REST Docs` 적용](#342-rest-docs-%ec%a0%81%ec%9a%a9)
     - [스프링 REST Docs 각종 문서 조각 생성하기](#%e1%84%89%e1%85%b3%e1%84%91%e1%85%b3%e1%84%85%e1%85%b5%e1%86%bc-rest-docs-%e1%84%80%e1%85%a1%e1%86%a8%e1%84%8c%e1%85%a9%e1%86%bc-%e1%84%86%e1%85%ae%e1%86%ab%e1%84%89%e1%85%a5-%e1%84%8c%e1%85%a9%e1%84%80%e1%85%a1%e1%86%a8-%e1%84%89%e1%85%a2%e1%86%bc%e1%84%89%e1%85%a5%e1%86%bc%e1%84%92%e1%85%a1%e1%84%80%e1%85%b5)
     - [스프링 REST Docs 문서 빌드](#%e1%84%89%e1%85%b3%e1%84%91%e1%85%b3%e1%84%85%e1%85%b5%e1%86%bc-rest-docs-%e1%84%86%e1%85%ae%e1%86%ab%e1%84%89%e1%85%a5-%e1%84%87%e1%85%b5%e1%86%af%e1%84%83%e1%85%b3)
+    - [테스트용 DB와 설정 분리하기](#%e1%84%90%e1%85%a6%e1%84%89%e1%85%b3%e1%84%90%e1%85%b3%e1%84%8b%e1%85%ad%e1%86%bc-db%e1%84%8b%e1%85%aa-%e1%84%89%e1%85%a5%e1%86%af%e1%84%8c%e1%85%a5%e1%86%bc-%e1%84%87%e1%85%ae%e1%86%ab%e1%84%85%e1%85%b5%e1%84%92%e1%85%a1%e1%84%80%e1%85%b5)
 
 <!-- /TOC -->
 
@@ -442,3 +443,100 @@ public class EventResource extends EntityModel<Event> {
    1. test에 profile 추가
    2. controller에 link 추가
       - `eventResource.add(new Link("/docs/index.html#resources-events-create").withRel("profile"));` 
+
+### 테스트용 DB와 설정 분리하기
+
+- `docker`
+  1. 기본 세팅
+     - 도커 설치
+       - [ubuntu docker 설치](https://hiseon.me/linux/ubuntu/install-docker/)
+     - 사용자 group 추가하기
+       - `sudo usermod -aG docker $USER`
+       - `echo $USER` 하면 현재 로그인된 아이디가 echo 된다.
+     - `sudo chmod 666 /var/run/docker.sock`
+       - 권한 부여
+  2. 도커로 `PostgreSQL` 컨테이너 실행
+     - `docker run --name rest -p 5432:5432 -e POSTGRES_PASSWORD=pass -d postgres`
+```console
+minkj1992@minkj1992-900X5L:~$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+06bda7e4d874        postgres            "docker-entrypoint.s…"   3 minutes ago       Up 3 minutes        0.0.0.0:5432->5432/tcp   rest
+```
+  3. 컨테이너 실행
+```console
+minkj1992@minkj1992-900X5L:~$ docker exec -i -t rest bash
+root@06bda7e4d874:/# 
+```
+  4. Connect to a database
+     - 권한 부여
+     - 기본유저와 데이터베이스 이름
+```docker
+root@06bda7e4d874:/# su - postgres
+postgres@06bda7e4d874:~$ 
+postgres@06bda7e4d874:~$ psql -d postgres -U postgres
+psql (12.2 (Debian 12.2-2.pgdg100+1))
+Type "help" for help.
+
+postgres=# 
+postgres=# \l
+                                 List of databases
+   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
+   
+-----------+----------+----------+------------+------------+--------------------
+---
+ postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 | 
+ template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres        
+  +
+           |          |          |            |            | postgres=CTc/postgr
+es
+ template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres        
+  +
+           |          |          |            |            | postgres=CTc/postgr
+es
+(3 rows)
+
+postgres=# \dt
+Did not find any relations.
+
+```
+- spring run
+```console
+
+Consider the following:
+	If you want an embedded database (H2, HSQL or Derby), please put it on the classpath.
+	If you have database settings to be loaded from a particular profile you may need to activate it (no profiles are currently active).
+
+```
+test용 config와 운영 상태의 db가 (`H2`,`postgresQL`) 혼용되어 에러 발생
+- `./resources/application.properties`
+```properties
+#postgres 설정
+spring.datasource.username=postgres
+spring.datasource.password=pass
+spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# hibernate 설정
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+spring.jpa.properties.hibernate.format_sql=true
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+```
+하지만 테스트에 `@SpringBootTest`를 해주어서 .properties를 혼용(h2 대신에, postgres 사용)하기 때문에, test와 application용을 분리 시켜준다.
+- 테스트 분리
+  - intellij 테스트 리소스 설정
+  - `./test/resources/application.properties`생성
+
+- `./test/resources/application.properties` -> `./test/resources/application-test.properties` 이름 변경을 해주어 `./resources/application.properties`에서 불필요한 설정만 오버라이딩 해주어 바꿔준다.
+```properties
+spring.datasource.username=sa
+spring.datasource.password=
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driver-class-name=org.h2.Driver
+
+spring.datasource.hikari.jdbc-url=jdbc:h2:mem:testdb
+
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
+```
+- 설정이 필요한 test 파일에 `@ActiveProfiles("test")` 넣어주기
