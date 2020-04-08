@@ -40,7 +40,7 @@ public class EventController {
         }
 
         // wrong value Request
-        eventValidator.validate(eventDto,errors);
+        eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
@@ -77,6 +77,40 @@ public class EventController {
         Event event = optionalEvent.get();
         EventResource eventResource = new EventResource(event);
         eventResource.add(new Link("/docs/index.html#resources-events-get").withRel("profile"));
+        return ResponseEntity.ok(eventResource);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity putEvent(@PathVariable Integer id,
+                                   @RequestBody @Valid EventDto eventDto,
+                                   Errors errors) {
+
+        //없는 event 수정 요청
+        Optional<Event> optionalEvent = this.eventRepository.findById(id);
+        if (optionalEvent.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 데이터 형식 잘못 맞춰졌을 경우
+        if (errors.hasErrors()) {
+            return badRequest(errors);
+        }
+
+        // 비즈니스 로직 상에서 에러 경우
+        this.eventValidator.validate(eventDto, errors);
+        if (errors.hasErrors()) {
+            return badRequest(errors);
+        }
+
+        // 온전한 update 이벤트는 save 요청
+        Event existingEvent = optionalEvent.get();
+        this.modelMapper.map(eventDto, existingEvent);
+        Event savedEvent = this.eventRepository.save(existingEvent);
+
+        // 리소스화 시켜서 HATEOAS
+        EventResource eventResource = new EventResource(savedEvent);
+        eventResource.add(new Link("/docs/index.html#resources-events-update").withRel("profile"));
+
         return ResponseEntity.ok(eventResource);
     }
 
