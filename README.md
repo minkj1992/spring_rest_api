@@ -32,6 +32,7 @@
     - [3.5.1. 이벤트 목록 조회 API 구현](#351-%e1%84%8b%e1%85%b5%e1%84%87%e1%85%a6%e1%86%ab%e1%84%90%e1%85%b3-%e1%84%86%e1%85%a9%e1%86%a8%e1%84%85%e1%85%a9%e1%86%a8-%e1%84%8c%e1%85%a9%e1%84%92%e1%85%ac-api-%e1%84%80%e1%85%ae%e1%84%92%e1%85%a7%e1%86%ab)
     - [3.5.2. 이벤트 조회 API](#352-%ec%9d%b4%eb%b2%a4%ed%8a%b8-%ec%a1%b0%ed%9a%8c-api)
     - [3.5.3. 이벤트 수정 API](#353-%ec%9d%b4%eb%b2%a4%ed%8a%b8-%ec%88%98%ec%a0%95-api)
+    - [3.5.4. 테스트 코드 리팩토링](#354-%ed%85%8c%ec%8a%a4%ed%8a%b8-%ec%bd%94%eb%93%9c-%eb%a6%ac%ed%8c%a9%ed%86%a0%eb%a7%81)
 
 <!-- /TOC -->
 
@@ -579,3 +580,6 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
 
 
 ### 3.5.3. 이벤트 수정 API
+
+### 3.5.4. 테스트 코드 리팩토링
+- `BaseControllerTest` 생성
