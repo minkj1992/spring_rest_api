@@ -1,5 +1,6 @@
 package com.minkj1992.spring_rest_api.events;
 
+import com.minkj1992.spring_rest_api.accounts.Account;
 import lombok.*;
 
 import javax.persistence.*;
@@ -29,11 +30,12 @@ public class Event {
     private int maxPrice;
     private int limitOfEnrollment;
 
-
     private boolean offline;
     private boolean free;
     @Enumerated(EnumType.STRING)
     private EventStatus eventStatus = EventStatus.DRAFT;
+    @ManyToOne
+    private Account manager;
 
     public void update() {
         free = basePrice == 0 && maxPrice == 0;
