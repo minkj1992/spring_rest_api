@@ -1,5 +1,6 @@
 package com.minkj1992.spring_rest_api.accounts;
 
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -52,16 +53,14 @@ public class AccountServiceTest {
 
     @Test
     public void findByUsernameFail() throws Exception {
-        //given
+        // expected
         String username = "random@email.com";
-        //when & then
-        try {
-            accountService.loadUserByUsername(username);
-            fail("supposed to be failed");
-        } catch (UsernameNotFoundException e) {
-            // username에 대한 메시지까지 확인
-            assertThat(e.getMessage()).containsSequence(username);
-        }
+        expectedException.expect(UsernameNotFoundException.class);  //뒤에 두면 동작 안함, 먼저 예측해야한다.
+        expectedException.expectMessage(Matchers.containsString(username));
+
+        // when
+        accountService.loadUserByUsername(username);
+
     }
 
 }
