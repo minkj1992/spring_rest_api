@@ -33,10 +33,11 @@
         - [3.5.2. 이벤트 조회 API](#352-이벤트-조회-api)
         - [3.5.3. 이벤트 수정 API](#353-이벤트-수정-api)
         - [3.5.4. 테스트 코드 리팩토링](#354-테스트-코드-리팩토링)
-    - [REST API 보안 적용](#rest-api-보안-적용)
-        - [Account 도메인 추가](#account-도메인-추가)
-        - [스프링 시큐리티 적용](#스프링-시큐리티-적용)
-        - [예외 테스트](#예외-테스트)
+    - [3.6. REST API 보안 적용](#36-rest-api-보안-적용)
+        - [3.6.1. Account 도메인 추가](#361-account-도메인-추가)
+        - [3.6.2. 스프링 시큐리티 적용](#362-스프링-시큐리티-적용)
+        - [3.6.3. 예외 테스트](#363-예외-테스트)
+        - [3.6.4. 스프링 시큐리티 기본 설정](#364-스프링-시큐리티-기본-설정)
 
 <!-- /TOC -->
 
@@ -589,14 +590,65 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
 ### 3.5.4. 테스트 코드 리팩토링
 - `BaseControllerTest` 생성
 
-## REST API 보안 적용
+## 3.6. REST API 보안 적용
  
-### Account 도메인 추가
+### 3.6.1. Account 도메인 추가
 - `./accounts/Account`
 
-### 스프링 시큐리티 적용
+### 3.6.2. 스프링 시큐리티 적용
 
 ![img](https://lh6.googleusercontent.com/N8ucQrC7V1oHQRXLZaJW5TTizWtOq4prAeLBQO5i1X7TYFog4pb3dfTE_QO8FU-UNcq3uK5m_Zs4uPWLBFhTkqI50JH4C-gca1EUJ9K564ewKBnqn3h0KNkNj6P4L0I8kdSJ8Po)
 
-### 예외 테스트
+### 3.6.3. 예외 테스트
+### 3.6.4. 스프링 시큐리티 기본 설정
+- `./configs/SecurityConfig`
+```java
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig  extends WebSecurityConfigurerAdapter {
+}
+
+```
+
+- 스프링 부트가 제공하는 security 설정은 더이상 작동하지 않는다.
+- AppConfig를 생성해주어 modelMapper를 옮겨주고, PasswordEncoder를 설정해준다.
+
+- `PasswordEncoderFactories`
+```java
+public class PasswordEncoderFactories {
+    public static PasswordEncoder createDelegatingPasswordEncoder() {
+        String encodingId = "bcrypt";
+        Map<String, PasswordEncoder> encoders = new HashMap();
+        encoders.put(encodingId, new BCryptPasswordEncoder());
+        encoders.put("ldap", new LdapShaPasswordEncoder());
+        encoders.put("MD4", new Md4PasswordEncoder());
+        encoders.put("MD5", new MessageDigestPasswordEncoder("MD5"));
+        encoders.put("noop", NoOpPasswordEncoder.getInstance());
+        encoders.put("pbkdf2", new Pbkdf2PasswordEncoder());
+        encoders.put("scrypt", new SCryptPasswordEncoder());
+        encoders.put("SHA-1", new MessageDigestPasswordEncoder("SHA-1"));
+        encoders.put("SHA-256", new MessageDigestPasswordEncoder("SHA-256"));
+        encoders.put("sha256", new StandardPasswordEncoder());
+        encoders.put("argon2", new Argon2PasswordEncoder());
+        return new DelegatingPasswordEncoder(encodingId, encoders);
+    }
+```
+- Encoding된 password 문자열 앞에 Prefix를 붙여서, 인코더 타입에따라서 적절한 인코더를 선택해준다. (어떠한 방식으로 인코딩 됬는지 판단)
+
+- `./configs/SecurityConfig`
+```java
+    /**
+     * filter 적용 (security filter를 적용할지 말지 선택)
+     * 이를 해주지 않으면 login 권한이 필요하게 된다. (기본적인 api index 페이지를 가더라도
+     */
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().mvcMatchers("/docs/index.html");
+        // spring boot가 제공해주는 static resource들에 대한 기본위치를 spring security에 적용되지 않도록 설정
+        web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+    }
+```
