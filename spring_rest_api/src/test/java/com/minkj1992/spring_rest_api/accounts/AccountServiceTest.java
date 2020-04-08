@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.fail;
 public class AccountServiceTest {
 
     @Rule
-    public ExpectedException expectedException;
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Autowired
     AccountService accountService;
