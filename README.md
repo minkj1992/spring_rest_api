@@ -35,6 +35,7 @@
     - [3.5.4. 테스트 코드 리팩토링](#354-%ed%85%8c%ec%8a%a4%ed%8a%b8-%ec%bd%94%eb%93%9c-%eb%a6%ac%ed%8c%a9%ed%86%a0%eb%a7%81)
   - [REST API 보안 적용](#rest-api-%eb%b3%b4%ec%95%88-%ec%a0%81%ec%9a%a9)
     - [Account 도메인 추가](#account-%e1%84%83%e1%85%a9%e1%84%86%e1%85%a6%e1%84%8b%e1%85%b5%e1%86%ab-%e1%84%8e%e1%85%ae%e1%84%80%e1%85%a1)
+    - [스프링 시큐리티 적용](#%e1%84%89%e1%85%b3%e1%84%91%e1%85%b3%e1%84%85%e1%85%b5%e1%86%bc-%e1%84%89%e1%85%b5%e1%84%8f%e1%85%b2%e1%84%85%e1%85%b5%e1%84%90%e1%85%b5-%e1%84%8c%e1%85%a5%e1%86%a8%e1%84%8b%e1%85%ad%e1%86%bc)
 
 <!-- /TOC -->
 
@@ -392,6 +393,7 @@ String parseJS eval
 
 ## 3.4. `HATEOAS`와 `Self-Describtive Message` 적용
 
+![img](https://lh6.googleusercontent.com/NmIC9arnfnb6khNTpj16g7TE7i5vXl9uN_fZMrwEpJXC8_k1mQNLmrq_GTlbsOzZtNCbgzBzYnhHRVriqTljhip7IXzOPMGNTIfCdOCF8E9I2vZIIk7NLKuaNhG_SlqYDqashA8)
 
 ### 3.4.1. `HATEOAS` 적용
 - `ResourceSupport` from Spring-HATEOAS
@@ -590,3 +592,8 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
  
 ### Account 도메인 추가
 - `./accounts/Account`
+
+### 스프링 시큐리티 적용
+
+![img](https://lh6.googleusercontent.com/N8ucQrC7V1oHQRXLZaJW5TTizWtOq4prAeLBQO5i1X7TYFog4pb3dfTE_QO8FU-UNcq3uK5m_Zs4uPWLBFhTkqI50JH4C-gca1EUJ9K564ewKBnqn3h0KNkNj6P4L0I8kdSJ8Po)
+
