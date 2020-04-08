@@ -228,10 +228,11 @@ public class EventControllerTest {
     }
 
     private void generateEvent(int i) {
-        Event.builder()
+        Event event = Event.builder()
                 .name("event" + i)
-                .description(i +"th test event")
+                .description(i + "th test event")
                 .build();
+        this.eventRepository.save(event);
     }
 
 }

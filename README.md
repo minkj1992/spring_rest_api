@@ -30,6 +30,7 @@
     - [3.4.5. 테스트용 DB와 설정 분리하기](#345-%e1%84%90%e1%85%a6%e1%84%89%e1%85%b3%e1%84%90%e1%85%b3%e1%84%8b%e1%85%ad%e1%86%bc-db%e1%84%8b%e1%85%aa-%e1%84%89%e1%85%a5%e1%86%af%e1%84%8c%e1%85%a5%e1%86%bc-%e1%84%87%e1%85%ae%e1%86%ab%e1%84%85%e1%85%b5%e1%84%92%e1%85%a1%e1%84%80%e1%85%b5)
   - [3.5. 이벤트 조회 및 수정 REST API 개발](#35-%ec%9d%b4%eb%b2%a4%ed%8a%b8-%ec%a1%b0%ed%9a%8c-%eb%b0%8f-%ec%88%98%ec%a0%95-rest-api-%ea%b0%9c%eb%b0%9c)
     - [3.5.1. 이벤트 목록 조회 API 구현](#351-%e1%84%8b%e1%85%b5%e1%84%87%e1%85%a6%e1%86%ab%e1%84%90%e1%85%b3-%e1%84%86%e1%85%a9%e1%86%a8%e1%84%85%e1%85%a9%e1%86%a8-%e1%84%8c%e1%85%a9%e1%84%92%e1%85%ac-api-%e1%84%80%e1%85%ae%e1%84%92%e1%85%a7%e1%86%ab)
+    - [](#)
 
 <!-- /TOC -->
 
@@ -558,3 +559,16 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
 
 
 - TODO: java.lang.AssertionError: No value at JSON path "_embedded.eventList[0]._links.self"
+
+```java
+    private void generateEvent(int i) {
+        Event event = Event.builder()
+                .name("event" + i)
+                .description(i + "th test event")
+                .build();
+        this.eventRepository.save(event);
+    }
+```
+- `.save`를 해주지 않아서 update가 되지 않았다.
+
+### 
