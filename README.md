@@ -38,6 +38,7 @@
         - [3.6.2. 스프링 시큐리티 적용](#362-스프링-시큐리티-적용)
         - [3.6.3. 예외 테스트](#363-예외-테스트)
         - [3.6.4. 스프링 시큐리티 기본 설정](#364-스프링-시큐리티-기본-설정)
+        - [스프링 시큐리티 폼 인증 설정](#스프링-시큐리티-폼-인증-설정)
 
 <!-- /TOC -->
 
@@ -652,3 +653,8 @@ public class PasswordEncoderFactories {
         web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 ```
+
+### 스프링 시큐리티 폼 인증 설정
+- 기본 admin 사용자 등록
+- `httprequest`시 인증 검사 실시
+- passwordEncoder를 추가해주어 string  ->  passwordEncoding이후 검사 실시

@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -57,5 +59,26 @@ public class SecurityConfig  extends WebSecurityConfigurerAdapter {
         web.ignoring().mvcMatchers("/docs/index.html");
         // spring boot가 제공해주는 static resource들에 대한 기본위치를 spring security에 적용되지 않도록 설정
         web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+    }
+
+//    /**
+//     * Http filter
+//     */
+//    @Override
+//    protected void configure(HttpSecurity http) throws Exception {
+//        http.authorizeRequests()
+//                .mvcMatchers("docs/index.html").anonymous()
+//                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).anonymous()
+//    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.anonymous()
+                .and()
+                .formLogin()
+                .and()
+                .authorizeRequests()
+                .mvcMatchers(HttpMethod.GET, "api/**").authenticated()
+                .anyRequest().authenticated();
     }
 }
