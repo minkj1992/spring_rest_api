@@ -1,6 +1,9 @@
 package com.minkj1992.spring_rest_api.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.minkj1992.spring_rest_api.accounts.AccountRepository;
+import com.minkj1992.spring_rest_api.accounts.AccountService;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.modelmapper.ModelMapper;
@@ -32,4 +35,16 @@ public class BaseControllerTest {
 
     @Autowired
     protected ModelMapper modelMapper;
+
+    @Autowired
+    protected AccountRepository accountRepository;
+
+    @Autowired
+    protected AccountService accountService;
+
+    @Before
+    //https://pupupee9.tistory.com/89
+    public void setUp () {
+        this.accountRepository.deleteAll();
+    }
 }

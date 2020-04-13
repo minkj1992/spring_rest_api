@@ -23,17 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OAuth2ServerConfigTest extends BaseControllerTest {
 
-    @Autowired
-    AccountService accountService;
-    @Autowired
-    AccountRepository accountRepository;
-
-    @Before
-    //https://pupupee9.tistory.com/89
-    public void setUp () {
-        this.accountRepository.deleteAll();
-    }
-
     @Test
     @TestDescription("인증 토큰을 발급받는 테스트")
     public void getAuthToken() throws Exception {
@@ -46,7 +35,7 @@ public class OAuth2ServerConfigTest extends BaseControllerTest {
                 .password(password)
                 .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                 .build();
-        this.accountService.saveAccount(minkj1992);
+        accountService.saveAccount(minkj1992);
 
         String clientId = "myapp";
         String clientSecret = "pass";
@@ -58,8 +47,5 @@ public class OAuth2ServerConfigTest extends BaseControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("access_token").exists());
-        //when
-
-        //then
     }
 }
