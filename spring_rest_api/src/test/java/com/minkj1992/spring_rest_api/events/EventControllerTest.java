@@ -1,7 +1,10 @@
 package com.minkj1992.spring_rest_api.events;
 
+import com.minkj1992.spring_rest_api.accounts.AccountRepository;
+import com.minkj1992.spring_rest_api.accounts.AccountService;
 import com.minkj1992.spring_rest_api.common.BaseControllerTest;
 import com.minkj1992.spring_rest_api.common.TestDescription;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
@@ -24,6 +27,9 @@ public class EventControllerTest extends BaseControllerTest {
 
     @Autowired
     EventRepository eventRepository;
+
+
+
 
 
     @Test

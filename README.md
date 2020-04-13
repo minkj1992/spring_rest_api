@@ -38,7 +38,8 @@
         - [3.6.2. 스프링 시큐리티 적용](#362-스프링-시큐리티-적용)
         - [3.6.3. 예외 테스트](#363-예외-테스트)
         - [3.6.4. 스프링 시큐리티 기본 설정](#364-스프링-시큐리티-기본-설정)
-        - [스프링 시큐리티 폼 인증 설정](#스프링-시큐리티-폼-인증-설정)
+        - [3.6.5. 스프링 시큐리티 폼 인증 설정](#365-스프링-시큐리티-폼-인증-설정)
+        - [3.6.6. 스프링 시큐리티 OAuth2 인증 서버 설정](#366-스프링-시큐리티-oauth2-인증-서버-설정)
 
 <!-- /TOC -->
 
@@ -654,7 +655,39 @@ public class PasswordEncoderFactories {
     }
 ```
 
-### 스프링 시큐리티 폼 인증 설정
+### 3.6.5. 스프링 시큐리티 폼 인증 설정
 - 기본 admin 사용자 등록
 - `httprequest`시 인증 검사 실시
 - passwordEncoder를 추가해주어 string  ->  passwordEncoding이후 검사 실시
+
+
+
+### 3.6.6. 스프링 시큐리티 OAuth2 인증 서버 설정
+
+- `error_description="query did not return a unique result: 2; nested exception is javax.persistence.NonUniqueResultException:`
+- 테스트가 깨지는 이유 ?
+    - 매번 BearerToken() 을 가져올때 동일한 email의 유저를 생성하기때문에 해당 유저 조회시 단건의 조회가 일어나지 않음.
+    - Spring Test의 특성
+        - @SpringBootTest를 사용하여 테스트를 진행하기 때문에 TEST용 ApplicationContext가 생성된다.
+        - InMemory DB 를 사용하기 때문에 ApplicationContext 가 죽지 않는 이상 InMemoryDB의 데이터가 공유된다.
+        - InMemory DB 간의 데이터가 공유되기 때문에 이런 문제가 발생하는것
+
+- 테스트 코드에 기존 잔류 데이터 삭제
+```java
+    @Before
+    //https://pupupee9.tistory.com/89
+    public void setUp () {
+        this.accountRepository.deleteAll();
+    }
+```
+
+- 올바른 결과값 json
+```json
+{
+"access_token":"9e704bc0-80ec-4037-a8b3-f2509d8cacd3",
+"token_type":"bearer",
+"refresh_token":"a74358c0-9c9f-4d2b-952e-39960d2e8c71",
+"expires_in":599,
+"scope":"read write"
+}
+```
