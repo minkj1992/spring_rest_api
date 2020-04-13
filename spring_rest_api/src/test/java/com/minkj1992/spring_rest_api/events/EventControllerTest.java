@@ -1,9 +1,11 @@
 package com.minkj1992.spring_rest_api.events;
 
 import com.minkj1992.spring_rest_api.accounts.Account;
+import com.minkj1992.spring_rest_api.accounts.AccountRepository;
 import com.minkj1992.spring_rest_api.accounts.AccountRole;
 import com.minkj1992.spring_rest_api.common.BaseControllerTest;
 import com.minkj1992.spring_rest_api.common.TestDescription;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
@@ -27,9 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 public class EventControllerTest extends BaseControllerTest {
-
-    @Autowired
-    EventRepository eventRepository;
 
 
     @Test
@@ -119,31 +118,6 @@ public class EventControllerTest extends BaseControllerTest {
                                 fieldWithPath("_links.profile.href").description("link to profile")
                         )
                 ));
-
-    }
-
-    private String getBearerToken() throws Exception {
-        String username = "minkj1992@gmail.com";
-        String password = "minkj1992";
-        Account minkj1992 = Account.builder()
-                .email(username)
-                .password(password)
-                .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
-                .build();
-        accountService.saveAccount(minkj1992);
-
-        String clientId = "myapp";
-        String clientSecret = "pass";
-        ResultActions perform = mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(clientId, clientSecret))
-                .param("username", username)
-                .param("password", password)
-                .param("grant_type", "password"));
-
-        Jackson2JsonParser parser = new Jackson2JsonParser();
-        var resultString = perform.andReturn().getResponse().getContentAsString();
-        return parser.parseMap(resultString).get("access_token").toString();
-
 
     }
 
@@ -350,5 +324,28 @@ public class EventControllerTest extends BaseControllerTest {
                 .eventStatus(EventStatus.DRAFT)
                 .build();
         return this.eventRepository.save(event);
+    }
+
+    private String getBearerToken() throws Exception {
+        creteaAccount();
+
+        ResultActions perform = mockMvc.perform(post("/oauth/token")
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", appProperties.getUserUsername())
+                .param("password", appProperties.getUserPassword())
+                .param("grant_type", "password"));
+
+        Jackson2JsonParser parser = new Jackson2JsonParser();
+        var resultString = perform.andReturn().getResponse().getContentAsString();
+        return parser.parseMap(resultString).get("access_token").toString();
+    }
+
+    private void creteaAccount() {
+        Account minkj1992 = Account.builder()
+                .email(appProperties.getUserUsername())
+                .password(appProperties.getUserPassword())
+                .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
+                .build();
+        accountService.saveAccount(minkj1992);
     }
 }

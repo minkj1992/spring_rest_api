@@ -3,6 +3,7 @@ package com.minkj1992.spring_rest_api.configs;
 import com.minkj1992.spring_rest_api.accounts.Account;
 import com.minkj1992.spring_rest_api.accounts.AccountRole;
 import com.minkj1992.spring_rest_api.accounts.AccountService;
+import com.minkj1992.spring_rest_api.common.AppProperties;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -37,14 +38,24 @@ public class AppConfig {
             @Autowired
             AccountService accountService;
 
+            @Autowired
+            AppProperties appProperties;
+
             @Override
             public void run(ApplicationArguments args) throws Exception {
-                Account minkj1992 = Account.builder()
-                        .email("minkj1992@gmail.com")
-                        .password("minkj1992")
+                Account admin = Account.builder()
+                        .email(appProperties.getAdminUsername())
+                        .password(appProperties.getAdminPassword())
                         .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                         .build();
-                accountService.saveAccount(minkj1992);
+                accountService.saveAccount(admin);
+
+                Account user = Account.builder()
+                        .email(appProperties.getUserUsername())
+                        .password(appProperties.getUserPassword())
+                        .roles(Set.of(AccountRole.USER))
+                        .build();
+                accountService.saveAccount(user);
             }
         };
     }

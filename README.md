@@ -41,6 +41,7 @@
         - [3.6.5. 스프링 시큐리티 폼 인증 설정](#365-스프링-시큐리티-폼-인증-설정)
         - [3.6.6. 스프링 시큐리티 OAuth2 인증 서버 설정](#366-스프링-시큐리티-oauth2-인증-서버-설정)
         - [3.6.7. 리소스 서버 설정](#367-리소스-서버-설정)
+        - [문자열을 외부 설정으로 빼내기](#문자열을-외부-설정으로-빼내기)
 
 <!-- /TOC -->
 
@@ -694,3 +695,6 @@ public class PasswordEncoderFactories {
 ```
 
 ### 3.6.7. 리소스 서버 설정
+### 문자열을 외부 설정으로 빼내기
+- [intellij @ConfigurationProperties 경고 해결하기](https://stackoverflow.com/questions/48954087/intellij-idea-complains-cannot-resolve-spring-boot-properties-but-they-work-fine)
+- 
