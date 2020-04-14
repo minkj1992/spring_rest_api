@@ -43,6 +43,7 @@
         - [3.6.7. 리소스 서버 설정](#367-리소스-서버-설정)
         - [3.6.8. 문자열을 외부 설정으로 빼내기](#368-문자열을-외부-설정으로-빼내기)
         - [3.6.9. Postman을 통한 api 점검](#369-postman을-통한-api-점검)
+        - [현재 사용자 조회](#현재-사용자-조회)
 
 <!-- /TOC -->
 
@@ -718,10 +719,7 @@ public class PasswordEncoderFactories {
 
 
 - 이벤트 목록 조회 API
-  - 로그인 하였을 경우
-    - 이벤트 생성 링크 제공
   - 로그인 하였을 시, token이 존재한다면 `profile`부분에 로그인 하지 않은 사용자와 다르게 추가 정보가 들어가도록 하길 원한다.
-
   - 현재 상황 `http://localhost:8080/api/events`하였을 때(with token)
 ```json
 {
@@ -742,6 +740,41 @@ public class PasswordEncoderFactories {
 }
 ```
 
+
+
+
+### 현재 사용자 조회
+
+- `@AuthenticationPrincipal`
+
 - 이벤트 조회 API
   - 로그인 했을 때
     - 이벤트 Manager인 경우, 이벤트 수정 링크 제공
+```java
+    @GetMapping
+    public ResponseEntity<?> queryEvents(Pageable pageable,
+                                         PagedResourcesAssembler<Event> assembler,
+                                         @AuthenticationPrincipal User user) {
+        ... 중략 ...
+        if (user != null) {
+            pageResources.add(linkTo(EventController.class).withRel("create-event"));
+        }
+        return ResponseEntity.ok(pageResources);
+    }
+```
+
+- 이벤트 목록 조회 API
+  - 로그인 하였을 경우
+    - 이벤트 생성 링크 제공
+
+1. `AccountAdapter`클래스를 생성하여 User 정보와 Account 정보를 통합시켜주도록 한다.
+2. `@CurrentUser` 어노테이션 생성
+   - ```java
+        @Target(ElementType.PARAMETER)
+        @Retention(RetentionPolicy.RUNTIME)
+        @AuthenticationPrincipal(expression = "#this == 'anonymousUser' ? null : account")
+        public @interface CurrentUser { }
+        ```
+    - `@CurrentUser Account currentUser`를 사용하여 현재 Account 값 가져옴
+3. create, update, list 요청 모두 현재 사용자 권한에 따라 다른 link가 보여지도록 `EventController` 수정 작업
+
