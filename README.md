@@ -44,12 +44,16 @@
         - [3.6.8. 문자열을 외부 설정으로 빼내기](#368-문자열을-외부-설정으로-빼내기)
         - [3.6.9. Postman을 통한 api 점검](#369-postman을-통한-api-점검)
         - [3.6.10. 현재 사용자 조회](#3610-현재-사용자-조회)
+        - [출력값 제한하기](#출력값-제한하기)
+        - [TODO: 추가해주어야 할 점](#todo-추가해주어야-할-점)
 
 <!-- /TOC -->
 
 
 
-
+- `http://localhost:8080/docs/index.html`
+- ascii-docs를 활용한 document 정보
+![](./img/ascii_doc.png)
 
 
 
@@ -778,3 +782,16 @@ public class PasswordEncoderFactories {
     - `@CurrentUser Account currentUser`를 사용하여 현재 Account 값 가져옴
 3. create, update, list 요청 모두 현재 사용자 권한에 따라 다른 link가 보여지도록 `EventController` 수정 작업
 
+
+
+### 출력값 제한하기
+
+- `createEvent`시 manager attribute에 email, password 같은 값들을 보여주지 않도록 한다.
+- Event Entity에 Manager 항목에 `JsonSerializer`를 추가해주고 이를 담당할 class 를 생성하여, 어떤 데이터를 허용할지 제한한다.
+
+
+
+### TODO: 추가해주어야 할 점
+- in-memory h2를 통합 테스트안에서는 테스트 케이스 끼리, 부딪히는 문제로 repository().deleteAll()을 시켜주었지만, JPA table 상에서는 매 테스트마다 drop     되지 않아서 문제가 생겼다.
+
+- 단일 테스트로는 문제가 없지만, 통합테스트에서는 사용자를 생성해주는 테스트케이스(새로운 토큰을 얻어오는 코드)가 깨지게 된다.

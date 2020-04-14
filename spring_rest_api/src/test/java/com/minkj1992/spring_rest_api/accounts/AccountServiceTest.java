@@ -1,6 +1,9 @@
 package com.minkj1992.spring_rest_api.accounts;
 
+import com.minkj1992.spring_rest_api.common.AppProperties;
+import com.minkj1992.spring_rest_api.common.BaseTest;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -13,26 +16,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.*;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("test")
-public class AccountServiceTest {
+public class AccountServiceTest extends BaseTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
-
-    @Autowired
-    AccountService accountService;
-
-    @Autowired
-    AccountRepository accountRepository;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -40,19 +36,18 @@ public class AccountServiceTest {
     @Test
     public void findByUsername() throws Exception {
         //given
-        String password = "minkj1992";
-        String userName = "minkj1992@gmail.com";
+
         Account account = Account.builder()
-                .email(userName)
-                .password(password)
+                .email(appProperties.getUserUsername())
+                .password(appProperties.getUserPassword())
                 .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
                 .build();
         accountService.saveAccount(account);
         //when
         UserDetailsService userDetailsService = this.accountService;
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(appProperties.getUserUsername());
         //then
-        assertThat(passwordEncoder.matches(password,userDetails.getPassword())).isTrue();
+        assertThat(passwordEncoder.matches(appProperties.getUserPassword(),userDetails.getPassword())).isTrue();
     }
 
     @Test

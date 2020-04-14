@@ -1,6 +1,6 @@
 package com.minkj1992.spring_rest_api.index;
 
-import com.minkj1992.spring_rest_api.common.BaseControllerTest;
+import com.minkj1992.spring_rest_api.common.BaseTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class IndexControllerTest extends BaseControllerTest {
+public class IndexControllerTest extends BaseTest {
 
     @Autowired
     MockMvc mockMvc;
