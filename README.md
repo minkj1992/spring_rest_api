@@ -41,7 +41,8 @@
         - [3.6.5. 스프링 시큐리티 폼 인증 설정](#365-스프링-시큐리티-폼-인증-설정)
         - [3.6.6. 스프링 시큐리티 OAuth2 인증 서버 설정](#366-스프링-시큐리티-oauth2-인증-서버-설정)
         - [3.6.7. 리소스 서버 설정](#367-리소스-서버-설정)
-        - [문자열을 외부 설정으로 빼내기](#문자열을-외부-설정으로-빼내기)
+        - [3.6.8. 문자열을 외부 설정으로 빼내기](#368-문자열을-외부-설정으로-빼내기)
+        - [3.6.9. Postman을 통한 api 점검](#369-postman을-통한-api-점검)
 
 <!-- /TOC -->
 
@@ -695,6 +696,52 @@ public class PasswordEncoderFactories {
 ```
 
 ### 3.6.7. 리소스 서버 설정
-### 문자열을 외부 설정으로 빼내기
+### 3.6.8. 문자열을 외부 설정으로 빼내기
 - [intellij @ConfigurationProperties 경고 해결하기](https://stackoverflow.com/questions/48954087/intellij-idea-complains-cannot-resolve-spring-boot-properties-but-they-work-fine)
-- 
+  
+
+### 3.6.9. Postman을 통한 api 점검
+
+- 인증 토큰 발급 받기
+![](./img/oauth_auth.png)
+![](./img/oauth_body.png)
+
+```json
+{
+    "access_token": "8b0d2fd7-be98-40c3-8572-8371ab574e07",
+    "token_type": "bearer",
+    "refresh_token": "c8f17ed8-b588-4e13-b24d-af1b252aa71f",
+    "expires_in": 599,
+    "scope": "read write"
+}
+```
+
+
+- 이벤트 목록 조회 API
+  - 로그인 하였을 경우
+    - 이벤트 생성 링크 제공
+  - 로그인 하였을 시, token이 존재한다면 `profile`부분에 로그인 하지 않은 사용자와 다르게 추가 정보가 들어가도록 하길 원한다.
+
+  - 현재 상황 `http://localhost:8080/api/events`하였을 때(with token)
+```json
+{
+    "_links": {
+        "self": {
+            "href": "http://localhost:8080/api/events?page=0&size=20"
+        },
+        "profile": {
+            "href": "/docs/index.html#resources-events-list"
+        }
+    },
+    "page": {
+        "size": 20,
+        "totalElements": 0,
+        "totalPages": 0,
+        "number": 0
+    }
+}
+```
+
+- 이벤트 조회 API
+  - 로그인 했을 때
+    - 이벤트 Manager인 경우, 이벤트 수정 링크 제공
