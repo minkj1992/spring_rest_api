@@ -44,8 +44,8 @@
         - [3.6.8. 문자열을 외부 설정으로 빼내기](#368-문자열을-외부-설정으로-빼내기)
         - [3.6.9. Postman을 통한 api 점검](#369-postman을-통한-api-점검)
         - [3.6.10. 현재 사용자 조회](#3610-현재-사용자-조회)
-        - [출력값 제한하기](#출력값-제한하기)
-        - [TODO: 추가해주어야 할 점](#todo-추가해주어야-할-점)
+        - [3.6.11. 출력값 제한하기](#3611-출력값-제한하기)
+        - [3.6.12. TODO: 추가해주어야 할 점](#3612-todo-추가해주어야-할-점)
 
 <!-- /TOC -->
 
@@ -89,6 +89,13 @@
         - 나중에 Entity 간에 연관관계가 있을 때 **상호참조**하는 관계가 되면 `EqualsAndHashCode`를 구현한 코드 안에서 서로간의 메소드를 계속 호출하다가 스택오버플로우가 발생할 수도 있음
 
 - `EqualsAndHashCode()`
+  - `eqauls()`
+    - 두 객체의 내용이 같은지 확인하는 Method입니다
+  - `hashCode()`
+    - 두 객체가 같은 객체인지 확인하는 Method입니다.
+    - HashMap() 같은 collection에서 같은 내용의 두 객체를 중복이라 판단하기 위해선, hashCode()에 대한 override()가 필요하다.
+
+
 ```java
     public boolean equals(final Object o) {
         if (o == this) {
@@ -166,51 +173,73 @@
 ```
 ## 3.3. 이벤트 생성 API
 ### 3.3.1. EventController Test `createEvent()` 생성
-- 
-    - 
-    ```java
-        @Test
-        public void 입력값_JSON_201응답() throws Exception {
-            //given
-            mockMvc.perform(post("/api/events/")    // "/"로 앞,뒤 막아준다.
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaTypes.HAL_JSON))
-                    .andExpect(status().isCreated());
-
-    ```
-    - `HAL_JSON`
-        - `HyperText Application Language`
-            - HAL은 API의 리소스들 사이에 쉽고 일관적인 하이퍼링크를 제공하는 방식이다. API 설계시 HAL을 도입하면 API간에 쉽게 검색이 가능하다. 
-            - HAL을 API Response 메시지에 적용하면 그 메시지가 JSON 포맷이건 XML 포맷이건 API를 쉽게 찾을 수 있는 메타 정보들을 포함시킬 수 있다는 것이다. 
-    - `MockHttpServletRequestBuilder accept`(java.lang.String… mediaTypes) : ‘Accept’ 헤더를 설정해줍니다.
-    - `Accept 헤더`
-        - 요청을 보낼 때 서버에 이런 타입(`MIME`)의 데이터를 보내줬으면 좋겠다고 명시할 때 사용
-        - Accept: image/png, image/gif
-        - Accept: text/*
-        - **Accept로 원하는 형식을 보내면, 서버가 그에 맞춰 보내주면서 응답 헤더의 Content를 알맞게 설정한다.**
-
-### 3.3.2. `EventController createEvent()` 생성
-- 
-    - `import static org.springframework.hateoas.server.mvc.ControllerLinkBuilder.linkTo;`
-        - Deprecated: use `WebMvcLinkBuilder` instead.
-        - `import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;`
-    - `ResponseEntity`
-        - HTTP response 객체 생성
-        - HTTP의 표준 규약을 지켜서 Response 하게 해준다
-        - 이를 통해 client는 서버의 응답에 신뢰를 가진다.
-        - `Entity.created(URI).build()` 하면 ResponseEntity가 생성된다.
 
 ```java
-    @PostMapping("/api/events")
-    public ResponseEntity createEvent() {
-        URI createdUri = linkTo(methodOn(EventController.class).createEvent()).slash("{id}").toUri();
-        return ResponseEntity.created(createdUri).build();
-    }
+    @Test
+    public void 입력값_JSON_201응답() throws Exception {
+        //given
+        mockMvc.perform(post("/api/events/")    // "/"로 앞,뒤 막아준다.
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON))
+                .andExpect(status().isCreated());
 ```
+- `HAL_JSON`
+    - `HyperText Application Language`
+        - HAL은 API의 리소스들 사이에 쉽고 일관적인 하이퍼링크를 제공하는 방식이다. API 설계시 HAL을 도입하면 API간에 쉽게 검색이가능하다. 
+        - HAL을 API Response 메시지에 적용하면 그 메시지가 JSON 포맷이건 XML 포맷이건 API를 쉽게 찾을 수 있는 메타 정보들을 포함시킬수 있다는 것이다. 
+- `MockHttpServletRequestBuilder accept`(java.lang.String… mediaTypes) : ‘Accept’ 헤더를 설정해줍니다.
+- `Accept 헤더`
+    - 요청을 보낼 때 서버에 이런 타입(`MIME`)의 데이터를 보내줬으면 좋겠다고 명시할 때 사용
+    - Accept: image/png, image/gif
+    - Accept: text/*
+    - **Accept로 원하는 형식을 보내면, 서버가 그에 맞춰 보내주면서 응답 헤더의 Content를 알맞게 설정한다.**
+    - 클라이언트 Request Accept-header가 HAL_JSON이라면 서버 method의 응답 body 값이 HAL_JSON일 때만 반응할 수 있다.
+
+### 3.3.2. `EventController createEvent()` 생성
+
+```java
+@Controller
+@RequestMapping(value = "/api/events/", produces = MediaTypes.HAL_JSON_VALUE)
+@RequiredArgsConstructor
+public class EventController {
+
+    private final EventRepository eventRepository;
+
+    @PostMapping
+    public ResponseEntity createEvent(@RequestBody Event event) {
+        Event newEvent = eventRepository.save(event);
+        URI createdUri = linkTo(EventController.class).slash(newEvent.getId()).toUri();
+        return ResponseEntity.created(createdUri).body(newEvent);
+    }
+}
+```
+- `@RequestMapping(value = "/api/events/", produces = MediaTypes.HAL_JSON_VALUE)`
+    - URL을 컨트롤러의 메서드와 매핑할 때 사용하는 스프링 프레임워크의 어노테이션
+    - `produces=`
+      - String[]설정과 Accept request 헤더가 일치할 경우에만 URL이 호출됨
+      - **Response시 해당 type으로 body를 만들어줄 것을 보증한다**
+- `import static org.springframework.hateoas.server.mvc.ControllerLinkBuilder.linkTo;`
+    - Deprecated: use `WebMvcLinkBuilder` instead.
+    - `import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;`
+- `org.springframework.http.ResponseEntity`
+    - HTTP response 객체 생성
+    - HTTP의 표준 규약을 지켜서 Response 하게 해준다
+    - 이를 통해 client는 서버의 응답에 신뢰를 가진다.
+    - `Entity.created(URI).build()` 하면 ResponseEntity가 생성된다.
+    - HttpEntity를 상속받음
+      - HttpHeader
+      - HttpBody
+    - linkTo로 생성된 uri 정보를 created에 넣어주면 HTTP Header에 Location=http://localhost/api/events/1와 같은 값이 들어가게 된다.
+    - body에 event 즉 java 클래스 그대로 주었는데 MockMvc에서는 json형태로 보여진다. 도대체 언제 ResponseBody로 변환 되었을까?
+      - ResponseEntity = http header + @ResponseBody(json)
+      - @RequestMapping(produces)에 HAL_JSON을 명시해주어 return 값이 HAL_JSON임을 보장해준다.
+- `@RequestBody`
+  - HttpBody (json, HAL_json)  ->  Java Object
+- `@ResponseBody`
+  - Java Object -> HttpBody (json, HAL_json)
 - `HATEOAS`를 통해서 class의 method를 불러주고 뒤에 `/{id}`를 붙여준 URI를 만든다.
 - 이후 ResponseEntity를 통해 URi를 create()시킨 builer를 .build()시켜준다. 
-
-테스트를 돌려보면 응답값을 볼 수 있다.
+- 테스트를 돌려보면 응답값을 볼 수 있다.
 ```json
 
 MockHttpServletRequest:
@@ -271,6 +300,15 @@ MockHttpServletResponse:
 
 ### 3.3.3. 입력값 제한하기
 > 입력값 중 id, price와 같은 필드들은 입력을 받아 update 되면 안된다.
+- 테스트 코드중 일부
+```java
+        mockMvc.perform(post("/api/events/")    // 앞 뒤로 /막아주어야 한다.
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(event)))
+```
+
+- `import com.fasterxml.jackson.databind.ObjectMapper;`
 
 - DTO 생성
 - `ModelMapper`를 통한 builder 패턴 간소화
@@ -278,6 +316,17 @@ MockHttpServletResponse:
 - `Matchers.not()`을 통한 setId, setStatus, .... 이 테스트에서 통과되지 않는지 검사
     - `Matchers`가 deprecated되었다.
     - @TODO: Matchers를 대체하여 테스트하는 방법 찾기
+- `@AutoConfigureMockMvc`
+  - `@SpringBootTest + @AutoConfigureMockMvc`는 통합테스트를 할 때 사용한다.
+  - `@WebMvcTest`는 MVC쪽만 슬라이스(slice) 테스트를 할 때 사용한다.
+
+- `HttpHeaders.LOCATION`
+  - The Location response header indicates the URL to redirect a page to. It only provides a meaning when served with a 3xx (redirection) or 201 (created) status response.
+  - `Location`
+    - the target of a redirection (or the URL of a newly created resource)
+  - `Content-Location`
+    - 해당 개체의 실제 위치를 알려준다.
+    - Content-Location is associated with the entity returned.
 
 ### 3.3.4. 입력값 이외에 에러발생
 > 입력값 중 id, price와 같은 필드들은 입력을 받아 update 되면 에러를 발생시킨다.
@@ -286,12 +335,55 @@ public void createEvent_Bad_Request() throws Exception {
         ...
 }
 ```
-- `application.properties`
-    - `spring.jackson.deserialization.fail-on-unknown-properties=true`
+- `spring.jackson.deserialization.fail-on-unknown-properties=true`
+  - Json -> Object이 deserialization이라고 한다.
+  - 해당 과정 도중 **받기로 한 값 이외(id, free, offline 값 등)에** 을 받는다면, `Bad Request 400 에러` 발생하도록 한다.
+  - Jackson 라이브러리에서 기본적으로 없는 속성이 정의된 경우 이를 무시하는데, 테스트케이스에서 이를 잡아주기 위해서는 해당 값을 true로 두어 예외처리 해주어야 한다.
+  - 실제로 해당 값을 두지 않는다면 test에서 잘못된 값을 주더라도 `201` return 하게된다.
 
 ### 3.3.5. Bad Request 처리
 > 입력값이 이상한 경우에 Bad Request를 보내는 방법
 
+- `org.springframework.validation.Errors`
+  - `errors.hasErrors()`
+  - javax에서 적용하는 validation을 errors에 담아준다.
+- `javax.validation.Valid`
+  - `@Valid`
+    - 해당 어노테이션이 붙여진 위치에 `Validator.validate() `검사함
+  - `validate()`
+    - Bean에 대한 유효성을 검사한다.
+    - 여기서의 Bean은 Spring의 Bean이 아닌, `자바빈`을 의미한다.
+  - 엔티티의 field에 @NotNull, @NotEmpty와 같은 어노테이션을 작성한다.
+- 참고로 spring validation 코드는 javax의 validation을 사용한다.
+
+- `javax` vs `java`
+  - 둘 모두 `JAVA SE`즉 표준 에디션이다.
+    - `JAVA EE`에는 jsp, JDBC등이 포함되어있다.
+      - `JAVA EE` = `JAVA SE` + 추가
+    - 참고로 `spring framework`는 EE, SE 둘 모두에도 포함되지 않는다.
+  - `javax 패키지`
+    - extension package
+    - 원래는 공식으로 채택되면 x가 빠져야하지만 기존 레거시코드에 x를 모두 리팩토링 해야하기 때문에 그대로 extension에서 가지를 쳐가며 발전함.
+  - `java 패키지`
+    - JAVA 언어 core package
+
+- `Spring Bean` vs `JavaBean`
+  - `Spring Bean`
+    - `Spring IoC 컨테이너`에 의해 관리되는 객체
+    - 애플리케이션을 구성하는 구성요소 
+  - `JavaBean`
+    - 데이터를 표현하는 것을 목적으로 하는 자바 클래스.
+    - 컴포넌트와 비슷한 의미로도 사용된다.
+    - JavaBean 규격서에 따라 작성된 자바 클래스를 가리킨다.
+    - JavaBean의 목적은 여러가지 다른 오브젝트들을 하나의 오브젝트(Bean)에 담기 위함이다. JavaBean의 규칙을 소프트웨어 프로토콜이라고 생각하면 쉽다.
+    - VO, DTO ...
+
+- `Java Bean` VS `POJO`
+  - JAVA Bean은 serialized(JVM안에서만 Compile가능)되어야 하지만, Java Object(POJO)는 Http Connection, DB Connection같이 JVM을 넘어선 데이터 값을 가질 수 있다.
+  - An object in Java may be a POJO but not a JavaBean. For instance, it may implement an interface or extend specified classes, but because it refers to objects that are stateful and/or exist outside the scope of the Java Virtual Machine (JVM)—for example, HTTP or database connections —it cannot reasonably be serialized to disk and then restored.
+
+- `ResponseEntity.build()`
+  - `ResponseEntity.badRequest().build()`
 #### 3.3.5.1. 입력값 Empty
 ```java
     @Test
@@ -784,14 +876,14 @@ public class PasswordEncoderFactories {
 
 
 
-### 출력값 제한하기
+### 3.6.11. 출력값 제한하기
 
 - `createEvent`시 manager attribute에 email, password 같은 값들을 보여주지 않도록 한다.
 - Event Entity에 Manager 항목에 `JsonSerializer`를 추가해주고 이를 담당할 class 를 생성하여, 어떤 데이터를 허용할지 제한한다.
 
 
 
-### TODO: 추가해주어야 할 점
+### 3.6.12. TODO: 추가해주어야 할 점
 - in-memory h2를 통합 테스트안에서는 테스트 케이스 끼리, 부딪히는 문제로 repository().deleteAll()을 시켜주었지만, JPA table 상에서는 매 테스트마다 drop     되지 않아서 문제가 생겼다.
 
 - 단일 테스트로는 문제가 없지만, 통합테스트에서는 사용자를 생성해주는 테스트케이스(새로운 토큰을 얻어오는 코드)가 깨지게 된다.
