@@ -412,7 +412,27 @@ public void createEvent_Bad_Request() throws Exception {
 - `EventValidator`클래스 생성
 - Controller 검증 코드 추가
 - 테스트 추가
+```java
+@Component
+public class EventValidator {
 
+    public void validate(EventDto eventDto, Errors errors) {
+        if (eventDto.getBasePrice() > eventDto.getMaxPrice() && eventDto.getMaxPrice() > 0) {
+            errors.rejectValue("basePrice", "WrongValue", "BasePrice is Wrong");
+            errors.rejectValue("maxPrice", "WrongValue", "MaxPrice is Wrong");
+        }
+
+        LocalDateTime endEventDateTime = eventDto.getEndEventDateTime();
+        if (endEventDateTime.isBefore(eventDto.getBeginEventDateTime()) ||
+                endEventDateTime.isBefore(eventDto.getCloseEnrollmentDateTime()) ||
+                endEventDateTime.isBefore(eventDto.getBeginEnrollmentDateTime())) {
+            errors.rejectValue("endEventDateTime","WrongValue","endEventDateTime is Wrong");
+        }
+    }
+}
+```
+
+- `@Component`는 생성해준 클래스에 IOC의 주입성을 받고 싶을 때 사용한다. (기존에 생성되어 있는 인스턴스는 `@Bean`사용)
 ### 3.3.6. TEST CODE Description 추가
 > 테스트 코드가 길어지니 테스트 description을 추가한다.
 - junit5는 이렇게 하지 않아도 되지만, 4에서는 다르게 한다.
@@ -420,28 +440,71 @@ public void createEvent_Bad_Request() throws Exception {
 @Target(ElementType.METHOD) // method에 대해 검증
 @Retention(RetentionPolicy.SOURCE)    //보유,유지: life cycle how long
 public @interface TestDescription {
-    String value();
+    String value(); //임의로 field명을 생성해줄 수 있다.
 }
 ```
 
 ### 3.3.7. Bad Request 응답
 > Bad Request 응답에 body가 있도록 한다.
 - controller에 bad request시 `.build()` 대신 `.body()`사용
-
+- `Errors` 인스턴스를 `ResponseEntity Body`에 넣어주기 위해서는 Json 타입으로 변환을 해주어야 한다.
 - **java Bean은 `BeanSerializer`에 의해서 json으로 변환이 가능하지만, SpringFramework의 Errors는 bean규약을 따르지 않아 따로 serializer를 생성해주어야 한다.**
 - `/common/ErrorSerializer`
-    - Error를 json으로 변환시켜 전달해준다.
 ```java
 @JsonComponent  //Spring의 ObjectMapper에 등록
 public class ErrorSerializer extends JsonSerializer<Errors> {
 
     @Override
     public void serialize(Errors errors, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        ...
+        jsonGenerator.writeStartArray();
+
+
+        errors.getFieldErrors().forEach(e -> {
+            try {
+                jsonGenerator.writeStartObject(); // start
+                jsonGenerator.writeStringField("field",e.getField());
+                jsonGenerator.writeStringField("objectName",e.getObjectName());
+                jsonGenerator.writeStringField("code",e.getCode());
+                jsonGenerator.writeStringField("defaultMessage",e.getDefaultMessage());
+                Object rejectedValue = e.getRejectedValue();
+                if (rejectedValue != null) {
+                    jsonGenerator.writeStringField("rejected", e.getRejectedValue().toString());
+                }
+                jsonGenerator.writeEndObject(); // end
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        errors.getGlobalErrors().forEach(e ->{
+            try {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField("objectName",e.getObjectName());
+                jsonGenerator.writeStringField("code",e.getCode());
+                jsonGenerator.writeStringField("defaultMessage",e.getDefaultMessage());
+                jsonGenerator.writeEndObject();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+        });
+        jsonGenerator.writeEndArray();
     }
 }
 ```
+- Error를 json으로 변환시켜 전달해준다.
 - **ObjectMapper는 Spring의 Errors 타입을 Serialize할 때 `ErrorSerializer`를 사용한다.**
+- `Spring Validation`
+  - `Errors`
+    - 유효성 검증 결과를 저장할 때 사용
+  - `BindingResult`
+    - `Errors`의 하위 인터페이스
+    - 폼 값을 커맨드 객체에 바인딩한 결과를 저장하고 에러 코드로부터 에러 메시지를 가져옴
+
+- Error 구성요소
+  - `errors.getGlobalErrors()`
+  - `errors.getFieldErrors()`
+
 
 - 응답값
 ```json
@@ -476,7 +539,7 @@ String parseJS eval
     }
 ```
 ### 3.3.9. 비즈니스 로직 테스트 리펙토링
-> 테스트 코드의 중복 해결 방법 -> `JUnitParams`
+> 테스트 코드의 중복 해결 방법 -> `@RunWith(JUnitParamsRunner.class)`
 
 ```java
     @Test
@@ -524,16 +587,96 @@ public class EventResource extends EntityModel<Event> {
   - `update`(수정 링크)
   - `events`(목록으로가는 링크)
 
-### 3.4.2. `REST Docs` 적용
+```java
+    add(linkTo(EventController.class).slash(event.getId()).withSelfRel());
+    eventResource.add(linkTo(EventController.class).withRel("query-events"));
+    eventResource.add(selfLinkBuilder.withRel("update-event"));
+```
+- Rel : Link = Key : Value
+- `.withRel()`은 링크의 key를 주는 것
+- `linkTo(EventController.class)`: http://localhost/api/events
+- `selfLinkBuilder`: http://localhost/api/events/{id}
 
+- `EventControllerTest`
+```java
+    .andExpect(jsonPath("_links.self").exists())
+    .andExpect(jsonPath("_links.query-events").exists())
+    .andExpect(jsonPath("_links.update-event").exists());
+```
+- HAL_JSON에서 HATEOAS
+  - `_links`: HATEOAS를 만족하는 link정보가 해당 json path에 존재한다.(이름은 규약)
+
+
+### 3.4.2. `REST Docs` 적용
 
 1. `@AutoConfigureRestDocs`를 만들어 놓은 `test class`위에 작성한다.
 2. `.andDo(document())`를 활용하여 `snippet`들을 생성해준다.
-3. `RestDocsMockMvcConfigurationCustomizer`를 활용해 보기  어려운 snippet들을 커스터마이징 시켜준다.
-   1. test 패키지에 클래스를 생성해준다.
+3. `org.springframework.boot.test.autoconfigure.restdocs.RestDocsMockMvcConfigurationCustomizer`를 사용하여, snippet들을 커스터마이징 시켜준다.
+   1. test 패키지에 문서화 작업을 시행할 configuration 클래스를 생성해준다.
    2. `RestDocsMockMvcConfigurationCustomizer`를 return 해주는 함수를 만들어준다.
 4. `@Import(RestDocsConfiguration.class)`를 테스트에 넣어주어 클래스를 설정을 불러온다.
-
+5. 테스트 코드에 문서화 코드 삽입
+```java
+.andDo(document("create-event",
+        links(
+                linkWithRel("self").description("link to self"),
+                linkWithRel("query-events").description("link to query events"),
+                linkWithRel("update-event").description("link to update an existing event"),
+                linkWithRel("profile").description("link to update an existing event")
+        ),
+        requestHeaders(
+                headerWithName(HttpHeaders.ACCEPT).description("accept header"),
+                headerWithName(HttpHeaders.CONTENT_TYPE).description("content type header")
+        ),
+        requestFields(
+                fieldWithPath("name").description("Name of new event"),
+                fieldWithPath("description").description("description of new event"),
+                fieldWithPath("beginEnrollmentDateTime").description("begin enroll time"),
+                fieldWithPath("closeEnrollmentDateTime").description("close enroll time"),
+                fieldWithPath("beginEventDateTime").description("begin event time"),
+                fieldWithPath("endEventDateTime").description("end event time"),
+                fieldWithPath("location").description("location of new event"),
+                fieldWithPath("basePrice").description("base price of new event"),
+                fieldWithPath("maxPrice").description("max price of new event"),
+                fieldWithPath("limitOfEnrollment").description("limit of enrollment")
+        ),
+        responseHeaders(
+                headerWithName(HttpHeaders.LOCATION).description("Location header"),
+                headerWithName(HttpHeaders.CONTENT_TYPE).description("Content type")
+        ),
+        /**
+         * relaxedResponseFields 를 쓰면 모든 필드를 기술할 필요가 없다.
+         * 하지만 모든 필드를 기술하지 않으므로 정확한 문서를 만들지 못한다.
+         * responseFields를 쓰면 모든 필드를 기술해야 한다.
+         */
+        relaxedResponseFields(
+                fieldWithPath("id").description("Identifier of new event"),
+                fieldWithPath("name").description("Name of new event"),
+                fieldWithPath("description").description("description of new event"),
+                fieldWithPath("beginEnrollmentDateTime").description("begin enroll time"),
+                fieldWithPath("closeEnrollmentDateTime").description("close enroll time"),
+                fieldWithPath("beginEventDateTime").description("begin event time"),
+                fieldWithPath("endEventDateTime").description("end event time"),
+                fieldWithPath("location").description("location of new event"),
+                fieldWithPath("basePrice").description("base price of new event"),
+                fieldWithPath("maxPrice").description("max price of new event"),
+                fieldWithPath("limitOfEnrollment").description("limit of enrollment"),
+                fieldWithPath("free").description("it tells if this event is free or not"),
+                fieldWithPath("offline").description("it tells if this event is offline or not"),
+                fieldWithPath("eventStatus").description("event status"),
+                fieldWithPath("_links.self.href").description("link to self"),
+                fieldWithPath("_links.query-events.href").description("link to query event list"),
+                fieldWithPath("_links.update-event.href").description("link to update existing event"),
+                fieldWithPath("_links.profile.href").description("link to profile")
+        )
+));
+```
+- 구조
+  1. Link
+  2. Response Header
+  3. Response Field(Body)
+  4. Request Header
+  5. Request Field(Body)
 
 ### 3.4.3. 스프링 REST Docs 각종 문서 조각 생성하기
 
