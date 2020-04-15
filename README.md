@@ -30,7 +30,7 @@
         - [3.4.5. 테스트용 DB와 설정 분리하기](#345-테스트용-db와-설정-분리하기)
     - [3.5. 이벤트 조회 및 수정 REST API 개발](#35-이벤트-조회-및-수정-rest-api-개발)
         - [3.5.1. 이벤트 목록 조회 API 구현](#351-이벤트-목록-조회-api-구현)
-        - [3.5.2. 이벤트 조회 API](#352-이벤트-조회-api)
+        - [3.5.2. 이벤트 단일 조회 API](#352-이벤트-단일-조회-api)
         - [3.5.3. 이벤트 수정 API](#353-이벤트-수정-api)
         - [3.5.4. 테스트 코드 리팩토링](#354-테스트-코드-리팩토링)
     - [3.6. REST API 보안 적용](#36-rest-api-보안-적용)
@@ -763,7 +763,8 @@ Consider the following:
 	If you have database settings to be loaded from a particular profile you may need to activate it (no profiles are currently active).
 
 ```
-test용 config와 운영 상태의 db가 (`H2`,`postgresQL`) 혼용되어 에러 발생
+
+Test용 config와 운영 상태의 db가 (`H2`,`postgresQL`) 혼용되어 에러 발생
 - `./resources/application.properties`
 ```properties
 #postgres 설정
@@ -795,12 +796,41 @@ spring.datasource.hikari.jdbc-url=jdbc:h2:mem:testdb
 
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
 ```
+- 이후 intellij test resource scope에 해당 `.properties`를 추가해준다.
 - 설정이 필요한 test 파일에 `@ActiveProfiles("test")` 넣어주기
 
 
 ## 3.5. 이벤트 조회 및 수정 REST API 개발
 
 ### 3.5.1. 이벤트 목록 조회 API 구현
+
+```java
+@RestController
+public class IndexController {
+
+    @GetMapping("/api")
+    public RepresentationModel<?> index() {
+        RepresentationModel<?> index = new RepresentationModel<>();
+        index.add(linkTo(EventController.class).withRel("events"));
+        return index;
+    }
+}
+```
+- `@RestController`
+  - @Controller + @ResponseBody
+  - @Controller는 ViewResolver를 통해서 View형태로 return
+  - 이에반해 @RestController는 @ResponseBody를 통해, HTTP ResponseBody에 직접 작성하여 return
+  - **사용자의 요청이 오면 MessageConverter를 통해서 application/json, text/plain 등 알맞는 형태로 리턴되게 된다.**
+- `RepresentationModel`
+  - `org.springframework.hateoas`
+  - Base class for `DTOs` to collect links.
+- 앞선 `EventResource`클래스에 사용된 `import org.springframework.hateoas.EntityModel`과의 차이점
+  - public class EntityModel<T> extends RepresentationModel<EntityModel<T>>
+  - 그저 RepresentationModel을 상속받은 타입이다.
+  - domain object에 link를 전달하기 위해 사용된다.
+  - A simple EntityModel wrapping a domain object and adding links to it.
+  - **RepresentationModel – is a container for a collection of Links and provides APIs to add those links to the model. EntityModel – represents RepresentationModel containing only single entity and related links.**
+
 
 - Event 목록 Page 정보와 함께 받기
     - content[0].id 확인
@@ -824,11 +854,65 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
 ```
 - `.save`를 해주지 않아서 update가 되지 않았다.
 
-### 3.5.2. 이벤트 조회 API
+
+
+- `./EventController`
+```java
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.web.bind.annotation.GetMapping;
+
+    @GetMapping
+    public ResponseEntity<?> queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler) {
+        Page<Event> page = this.eventRepository.findAll(pageable);
+        //EventResource
+        PagedModel<EntityModel<Event>> pageResource = assembler.toModel(page, e -> new EventResource(e));
+        pageResource.add(new Link("/docs/index.html#resources-events-list").withRel("profile"));
+        return ResponseEntity.ok(pageResource);
+    }
+```
+
+- queryEvents의 `Pageable`에 parameter값은 누가 전달하는가?
+```java
+    .param("page", "1")
+    .param("size", "10")
+    .param("sort", "name,DESC"))
+```
+- mockMVC에서 .param에 해당 key값은 page용 키워드이다. 그러므로 해당 값을 pageable에 전달해준다.
+- `PagedResourcesAssembler<Event> assembler`값은 누가 호출해주는가?
+    - HATEOAS의 request filter에 여러가지가 있는 것같다.
+    - **두번째 인자로 전달되는 `MethodParameterAwarePagedResourcesAssembler`타입의 `PagedResourcesAssembler<Event> assembler`값은 pageable이 존재한다면 자동으로 2번째 인자로 assembler를 받을 수 있도록 허용해주는 듯하다.**
+
+- `eventRepository.finaAll()`
+  - `eventRepository`는 `JpaRepository`를 extend한다. 이는 `PagingAndSortingRepository`를 상속받고 있기 때문에 `findAll()`을 사용가능하다.
+
+### 3.5.2. 이벤트 단일 조회 API
 - 이벤트 1개 생성 후 생성 검사 test
 - 이벤트가 없을 경우 404 error 테스트 추가
 - 이벤트가 없다면 404 존재한다면 200으로 return 해주는 controller method() 생성
+```java
+import java.util.Optional;
 
+    @GetMapping("/{id}")
+    public ResponseEntity getEvent(@PathVariable Integer id) {
+        Optional<Event> optionalEvent = this.eventRepository.findById(id);
+        if (optionalEvent.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Event event = optionalEvent.get();
+        EventResource eventResource = new EventResource(event);
+        eventResource.add(new Link("/docs/index.html#resources-events-get").withRel("profile"));
+        return ResponseEntity.ok(eventResource);
+    }
+
+```
+- `Optional<T>`
+  - T 타입의 객체를 받고, 해당 객체가 Null일 수도 있음을 명시한다.
+  - Null Check에 대한 Exception을 throw해준다.
+  - JAVA8 이후부터 Null Check를 편하게 해주기 위해 사용하는 wrapper class
+- JpaRepository의 부모인 CRUDRepository에는 `Optional<T> findById(ID var1)`이 정의되어 있다.
 
 ### 3.5.3. 이벤트 수정 API
 
@@ -839,6 +923,24 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
  
 ### 3.6.1. Account 도메인 추가
 - `./accounts/Account`
+```java
+@Entity
+@Getter @Setter @EqualsAndHashCode(of = "id")
+@Builder @NoArgsConstructor @AllArgsConstructor
+public class Account {
+    @Id @GeneratedValue
+    private Integer id;
+
+    private String email;
+
+    private String password;
+
+    // 가져올 데이터가 적기도 하고, 거의 모두 필요하니 EAGER 세팅한다.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<AccountRole> roles;
+```
+- @ElementCollection(fetch = FetchType.EAGER)
 
 ### 3.6.2. 스프링 시큐리티 적용
 
