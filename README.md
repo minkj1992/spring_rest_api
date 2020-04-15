@@ -1118,13 +1118,10 @@ public class PasswordEncoderFactories {
     - `@CurrentUser Account currentUser`를 사용하여 현재 Account 값 가져옴
 3. create, update, list 요청 모두 현재 사용자 권한에 따라 다른 link가 보여지도록 `EventController` 수정 작업
 
-
-
 ### 3.6.11. 출력값 제한하기
 
 - `createEvent`시 manager attribute에 email, password 같은 값들을 보여주지 않도록 한다.
 - Event Entity에 Manager 항목에 `JsonSerializer`를 추가해주고 이를 담당할 class 를 생성하여, 어떤 데이터를 허용할지 제한한다.
-
 
 
 ### 3.6.12. TODO: 추가해주어야 할 점
