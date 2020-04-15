@@ -941,7 +941,8 @@ public class Account {
     private Set<AccountRole> roles;
 ```
 - @ElementCollection(fetch = FetchType.EAGER)
-
+    - ElementCollection is a standard JPA annotation, which is now preferred over the proprietary Hibernate annotation CollectionOfElements.
+    - It means that the collection is not a collection of entities, but a collection of simple types (Strings, etc.) or a collection of embeddable elements (class annotated with @Embeddable).
 ### 3.6.2. 스프링 시큐리티 적용
 
 ![img](https://lh6.googleusercontent.com/N8ucQrC7V1oHQRXLZaJW5TTizWtOq4prAeLBQO5i1X7TYFog4pb3dfTE_QO8FU-UNcq3uK5m_Zs4uPWLBFhTkqI50JH4C-gca1EUJ9K564ewKBnqn3h0KNkNj6P4L0I8kdSJ8Po)
@@ -1082,8 +1083,6 @@ public class PasswordEncoderFactories {
 ```
 
 
-
-
 ### 3.6.10. 현재 사용자 조회
 
 - `@AuthenticationPrincipal`
@@ -1129,6 +1128,6 @@ public class PasswordEncoderFactories {
 
 
 ### 3.6.12. TODO: 추가해주어야 할 점
-- in-memory h2를 통합 테스트안에서는 테스트 케이스 끼리, 부딪히는 문제로 repository().deleteAll()을 시켜주었지만, JPA table 상에서는 매 테스트마다 drop     되지 않아서 문제가 생겼다.
+- in-memory h2를 통합 테스트안에서는 테스트 케이스 끼리, 부딪히는 문제로 repository().deleteAll()을 시켜주었지만, JPA table 상에서는 매 테스트마다 drop 되지 않아서 문제가 생겼다.
 
 - 단일 테스트로는 문제가 없지만, 통합테스트에서는 사용자를 생성해주는 테스트케이스(새로운 토큰을 얻어오는 코드)가 깨지게 된다.
