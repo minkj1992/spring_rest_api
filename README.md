@@ -46,6 +46,10 @@
         - [3.6.10. 현재 사용자 조회](#3610-현재-사용자-조회)
         - [3.6.11. 출력값 제한하기](#3611-출력값-제한하기)
         - [3.6.12. TODO: 추가해주어야 할 점](#3612-todo-추가해주어야-할-점)
+    - [DevOps](#devops)
+        - [Spring Project Dockerize](#spring-project-dockerize)
+        - [의사결정](#의사결정)
+        - [Jenkins](#jenkins)
 
 <!-- /TOC -->
 
@@ -1128,3 +1132,102 @@ public class PasswordEncoderFactories {
 - in-memory h2를 통합 테스트안에서는 테스트 케이스 끼리, 부딪히는 문제로 repository().deleteAll()을 시켜주었지만, JPA table 상에서는 매 테스트마다 drop 되지 않아서 문제가 생겼다.
 
 - 단일 테스트로는 문제가 없지만, 통합테스트에서는 사용자를 생성해주는 테스트케이스(새로운 토큰을 얻어오는 코드)가 깨지게 된다.
+
+## DevOps
+### Spring Project Dockerize
+- [postSQL + Spring Dockerize](https://medium.com/@isurunuwanthilaka/docker-zero-to-hero-with-springboot-postgres-e0b8c3a4dccb)
+
+
+- application.properties
+```properties
+
+#postgres 설정
+spring.datasource.username=postgres
+spring.datasource.password=pass
+spring.datasource.url=jdbc:postgresql://postgres:5432/postgres
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialect
+```
+
+- Dockerfile
+```docker
+FROM adoptopenjdk/openjdk11:ubi
+VOLUME /tmp
+EXPOSE 8876
+RUN mkdir -p /app/
+RUN mkdir -p /app/logs/
+ADD target/spring_rest_api-0.0.1-SNAPSHOT.jar /app/app.jar
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.profiles.active=container", "-jar", "/app/app.jar"]
+```
+
+- docker-compose.yml
+```yml
+version: "3"
+services:
+  postgres:
+    image: postgres:latest
+    network_mode: bridge
+    container_name: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+    - 5432
+    ports:
+      - 5432:5432
+    environment:
+         - POSTGRES_PASSWORD=pass
+         - POSTGRES_USER=postgres
+         - POSTGRES_DB=testdb
+    restart: unless-stopped
+# APP*****************************************
+  springbootapp:
+    image: springbootapp:latest
+    network_mode: bridge
+    container_name: springbootapp
+    expose:
+      - 8876
+    ports:
+      - 8876:8876
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    links:
+      - postgres
+volumes:
+  postgres-data:
+```
+
+1. `mvn clean package`
+2. `docker build ./ -t springbootapp`
+3. `docker-compose up`
+
+
+
+
+### 의사결정
+GitHub Issues & Projects를 선택하겠다. 그 이유는,
+
+Jira는 무조건 돈이 들어간다. 그렇다고 큰 메리트가 따로 있다고 생각이 들진 않는다. 큰 조직에서 매니저 급이 태스크를 관리할 때나 잘 쓰일 것 같은 트래커라고 생각한다.
+
+Trello는 모던한 형태의 태스크 관리 보드인데, 필요한 기능들이 잘 들어가 있고 괜찮은 툴이지만 지금의 요구사항으론 GitHub 외부의 트래커를 따로 쓸만한 이유가 없다.
+
+위의 요구 사항을 모두 만족한다 - assign, issue conversation 기능이 있고, customized label과 filter by label 기능을 통해 이슈 종류 구분이 원활하고, projects에 issues 기능을 연동해 이슈를 시각화 가능하며, projects의 automation 기능을 통해 이슈 구분과 이슈 상태 자동 갱신도 가능하다.(이슈가 close되면, projects에서 'Done' 컬럼으로 자동 이동시키는 등)
+
+GitHub Issues에서 이슈를 등록하면 해당 이슈에 대한 번호가 매겨지는데, 커밋 메시지에 #123과 같이 그 번호를 명시해 두면 자동으로 해당 이슈가 링크되며 conversation할 때도 사용할 수 있다.(참고로 이건 Jira와 BitBucket을 연동하는 경우에도 가능하다.)
+
+이슈 트래커를 위해 따로 돈을 내지 않아도 된다. private repository를 생성 가능하게 만들기 위해 Organization 유료 플랜을 결제하는 경우는 있을 수 있지만, GitHub issues와 projects는 항상 무료다. 아래의 캡처들은 순서대로 각각 Projects와 Issues 기능이다.
+
+
+### Jenkins
+
+1. Jenkins 설치
+   - `wget http://mirrors.jenkins.io/war/latest/jenkins.war`
+
+
+
+wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -
+
+sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list'
+
+
+
