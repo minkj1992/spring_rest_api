@@ -1045,7 +1045,8 @@ public class PasswordEncoderFactories {
 ### 3.6.7. 리소스 서버 설정
 ### 3.6.8. 문자열을 외부 설정으로 빼내기
 - [intellij @ConfigurationProperties 경고 해결하기](https://stackoverflow.com/questions/48954087/intellij-idea-complains-cannot-resolve-spring-boot-properties-but-they-work-fine)
-  
+
+
 
 ### 3.6.9. Postman을 통한 api 점검
 
@@ -1202,7 +1203,10 @@ volumes:
 3. `docker-compose up`
 
 
-
+- nginx 
+- docker-blue, docker-green
+- docker-compose-nginx
+- delpoy.sh
 
 ### 의사결정
 GitHub Issues & Projects를 선택하겠다. 그 이유는,

@@ -5,7 +5,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile_nginx
-        image: /nginx:latest
+        image: minkj1992/nginx:0.1
         ports: 
             - "80:80"
         container_name: nginx_springproject
